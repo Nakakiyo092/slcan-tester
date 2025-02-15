@@ -5,7 +5,7 @@ import unittest
 import time
 import serial
 
-# NOTE: This test needs to be done with CAN bus fixed at dominant level
+# NOTE: This test needs to be done with CAN bus fixed at dominant level.
 class ShortTestCase(unittest.TestCase):
 
     print_on: bool
@@ -30,13 +30,13 @@ class ShortTestCase(unittest.TestCase):
         self.receive()
         self.send(b"Y2\r")
         self.receive()
-        self.send(b"z0001\r")
+        self.send(b"Z0\r")
         self.receive()
         self.send(b"W2\r")
         self.receive()
         self.send(b"M00000000\r")
         self.receive()
-        self.send(b"mFFFFFFFF\r")
+        self.send(b"mFFFFFFFF\r")       # mFFFFFFFF -> Pass all
         self.receive()
 
 
@@ -81,14 +81,15 @@ class ShortTestCase(unittest.TestCase):
         return rx_data
 
 
-    def test_short(self):
-        self.print_on = True
+    def test_dominant(self):
+        cmd_send_std = (b"r", b"t", b"d", b"b")
+        cmd_send_ext = (b"R", b"T", b"D", b"B")
+
+        #self.print_on = True
         self.send(b"=\r")
         self.assertEqual(self.receive(), b"\r")
 
         # check no error
-        self.send(b"?\r")
-        self.receive()
         self.send(b"F\r")
         self.assertEqual(self.receive(), b"F00\r")
         self.send(b"C\r")
@@ -97,11 +98,12 @@ class ShortTestCase(unittest.TestCase):
         # check error passive
         self.send(b"O\r")
         self.assertEqual(self.receive(), b"\r")
-        time.sleep(0.1)     # wait for bus off ( > 1ms * 255 / 8)
-        self.send(b"?\r")
-        self.receive()
+        time.sleep(0.5)     # wait for error passive ( > 1ms * 128 / 1)
         self.send(b"F\r")
         self.assertEqual(self.receive(), b"FA4\r")  # BEI + EPI + EI
+        self.send(b"F\r")
+        self.assertEqual(self.receive(), b"F00\r")  # check error clear
+
         self.send(b"C\r")
         self.assertEqual(self.receive(), b"\r")
 
