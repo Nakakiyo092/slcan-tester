@@ -44,6 +44,15 @@ class LoopbackTestCase(unittest.TestCase):
         self.dut.send(b"C\r")
         self.assertEqual(self.dut.receive(), b"\r")
 
+        # update setting in RAM
+        self.dut.send(b"z0000\r")
+        self.assertEqual(self.dut.receive(), b"\r")
+
+        self.dut.send(b"M00000000\r")
+        self.assertEqual(self.dut.receive(), b"\r")
+        self.dut.send(b"mFFFFFFFF\r")
+        self.assertEqual(self.dut.receive(), b"\r")
+
 
 if __name__ == "__main__":
     unittest.main()
