@@ -28,16 +28,16 @@ class LoopbackTestCase(unittest.TestCase):
         cmd_send_ext = (b"R", b"T", b"D", b"B")
 
         # check response to shortest SEND in CAN loopback mode
-        self.send(b"z0000\r")
-        self.assertEqual(self.receive(), b"\r")
-        self.send(b"W2\r")
-        self.assertEqual(self.receive(), b"\r")
-        self.send(b"M00000000\r")
-        self.assertEqual(self.receive(), b"\r")
-        self.send(b"m00000000\r")       # pass 00000000x only
-        self.assertEqual(self.receive(), b"\r")
-        self.send(b"=\r")
-        self.assertEqual(self.receive(), b"\r")
+        self.dut.send(b"z0000\r")
+        self.assertEqual(self.dut.receive(), b"\r")
+        self.dut.send(b"W2\r")
+        self.assertEqual(self.dut.receive(), b"\r")
+        self.dut.send(b"M00000000\r")
+        self.assertEqual(self.dut.receive(), b"\r")
+        self.dut.send(b"m00000000\r")       # pass 00000000x only
+        self.assertEqual(self.dut.receive(), b"\r")
+        self.dut.send(b"=\r")
+        self.assertEqual(self.dut.receive(), b"\r")
 
 
         print("")
@@ -48,28 +48,28 @@ class LoopbackTestCase(unittest.TestCase):
 
         for cmd in cmd_send_std:
             time.sleep(0.5)
-            self.send(cmd + b"03F0\r")
-            self.assertEqual(self.receive(), b"z\r")
+            self.dut.send(cmd + b"03F0\r")
+            self.assertEqual(self.dut.receive(), b"z\r")
 
         for cmd in cmd_send_ext:
             time.sleep(0.5)
-            self.send(cmd + b"0137FEC80\r")
-            self.assertEqual(self.receive(), b"Z\r")
+            self.dut.send(cmd + b"0137FEC80\r")
+            self.assertEqual(self.dut.receive(), b"Z\r")
 
         for cmd in cmd_send_std:
             time.sleep(0.5)
-            self.send(cmd + b"0000\r")
-            self.assertEqual(self.receive(), b"z\r")
+            self.dut.send(cmd + b"0000\r")
+            self.assertEqual(self.dut.receive(), b"z\r")
 
         for cmd in cmd_send_ext:
             time.sleep(0.5)
-            self.send(cmd + b"000000000\r")
-            self.assertEqual(self.receive(), b"Z\r")
+            self.dut.send(cmd + b"000000000\r")
+            self.assertEqual(self.dut.receive(), b"Z\r")
 
         time.sleep(2)
 
-        self.send(b"C\r")
-        self.assertEqual(self.receive(), b"\r")
+        self.dut.send(b"C\r")
+        self.assertEqual(self.dut.receive(), b"\r")
 
 
 if __name__ == "__main__":
