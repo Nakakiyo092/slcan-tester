@@ -83,7 +83,7 @@ class ShortTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
 
 
-    def test_error_bus_off_only(self):
+    def test_error_bus_off_clear(self):
         #self.dut.print_on = True
         self.dut.send(b"-0\r")  # Disable auto retransmission
         self.assertEqual(self.dut.receive(), b"\r")
