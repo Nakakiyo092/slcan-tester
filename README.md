@@ -37,7 +37,13 @@ Windows
 ```
 python .\test\test_slcan.py
 ```
+```
+python -m unittest test_slcan.SlcanTestCase.test_blank_command
+```
 Linux
 ```
 python3 ./test/test_slcan.py
+```
+```
+python3 -m unittest test_slcan.SlcanTestCase.test_blank_command
 ```
