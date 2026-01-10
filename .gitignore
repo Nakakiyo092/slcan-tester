@@ -1,4 +1,4 @@
 test/__pycache__/*
+test/policy.md
 venv/*
 .vscode/*
-
