@@ -106,20 +106,18 @@ def main():
 
         ms = int(round(time.time() * 1000))
         if ms > tick_next and not flag_tx:
-            tick_next = ms + 1000 * args.duration
-            
             tx_speed = tx_len / 1000 / args.duration
             rx_speed = rx_len / 1000 / args.duration
             print("tx speed: ", f"{tx_speed:8.2f}", "kB/s\t", f"{tx_speed * 8:8.2f}", "kbits/s")
             print("rx speed: ", f"{rx_speed:8.2f}", "kB/s\t", f"{rx_speed * 8:8.2f}", "kbits/s")
             print("message loss: ", tx_cnt - rx_cnt, " / ", tx_cnt)
             print("")
-            device.write(b"F\r")
-            time.sleep(0.1)
+            #device.write(b"F\r")
+            #time.sleep(0.1)
             print("device status: ", device.read_all().decode())
-            device.write(b"f\r")
-            time.sleep(0.1)
-            print(device.read_all().decode())
+            #device.write(b"f\r")
+            #time.sleep(0.1)
+            #print(device.read_all().decode())
             device.write(b"z\r")
             time.sleep(0.1)
             print(device.read_all().decode())
@@ -130,6 +128,8 @@ def main():
             tx_cnt = 0
             rx_cnt = 0
             
+            ms = int(round(time.time() * 1000))
+            tick_next = ms + 1000 * args.duration
             flag_tx = True
         
             if check_key_thread.is_alive() == False:
