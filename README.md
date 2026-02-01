@@ -1,4 +1,4 @@
-# SLCAN Tester
+# Slcan Tester
 Python test scripts for SLCAN device with CAN FD support.
 - https://github.com/Nakakiyo092/usb2canfdv1
 - https://github.com/Nakakiyo092/canable2-fw
@@ -40,6 +40,7 @@ Windows
 python .\test\test_slcan.py
 ```
 ```
+cd test
 python -m unittest test_slcan.SlcanTestCase.test_blank_command
 ```
 Linux
@@ -47,5 +48,6 @@ Linux
 python3 ./test/test_slcan.py
 ```
 ```
+cd test
 python3 -m unittest test_slcan.SlcanTestCase.test_blank_command
 ```
