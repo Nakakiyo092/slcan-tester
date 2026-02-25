@@ -1,3 +1,11 @@
+"""
+A helper class for testing the SLCAN device under test.
+
+License:
+    MIT License.
+    See the accompanying LICENSE file for full terms.
+"""
+
 import time
 import serial
 
@@ -63,11 +71,11 @@ class DeviceUnderTest:
         self.ser.close()
 
 
-    def print_data(self, dir: chr, data: bytes):
+    def print_data(self, direction: chr, data: bytes):
         datar = data
         datar = datar.replace(b"\r", b"[CR]")
         datar = datar.replace(b"\a", b"[BELL]")
-        if dir == "t" or dir == "T":
+        if direction in ('t', 'T'):
             print("")
             print("<<< ", datar.decode())
         else:
@@ -78,7 +86,7 @@ class DeviceUnderTest:
     def send(self, tx_data: bytes):
         self.ser.write(tx_data)
 
-        if (self.print_on):
+        if self.print_on:
             self.print_data("T", tx_data)
 
 
@@ -86,15 +94,14 @@ class DeviceUnderTest:
         rx_data = b""
         cycle = 0.02    # sec
         timeout = 1     # sec
-        for i in range(0, int(timeout / cycle)):
+        for _ in range(0, int(timeout / cycle)):
             time.sleep(cycle)
             tmp = self.ser.read_all()
             rx_data = rx_data + tmp
             if len(tmp) == 0 and len(rx_data) != 0:
                 break
 
-        if (self.print_on):
+        if self.print_on:
             self.print_data("R", rx_data)
-        
-        return rx_data
 
+        return rx_data
