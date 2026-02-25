@@ -49,7 +49,7 @@ class BufferTestCase(unittest.TestCase):
 
     # TODO need both rx and tx frames?
     # Check stored frames in CDC Tx buffer are not altered in order or content
-    def test_rx_frame_in_cdc_tx_buffer(self):
+    def test_tx_frame_in_cdc_tx_buffer(self):
         #self.dut.print_on = True
         rx_data_exp = b""
 
