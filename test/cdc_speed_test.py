@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 
-import argparse
-import serial
+"""
+Test USB CDC throughput.
+
+License:
+    MIT License.
+    See the accompanying LICENSE file for full terms.
+"""
+
 import time
 import threading
+
+import argparse
+import serial
 
 def get_argparser():
     parser = argparse.ArgumentParser(
@@ -136,15 +145,15 @@ def main():
             rx_len = 0
             tx_cnt = 0
             rx_cnt = 0
-            
+
             ms = int(round(time.time() * 1000))
             tick_next = ms + 1000 * args.duration
             flag_tx = True
-        
-            if check_key_thread.is_alive() == False:
+
+            if check_key_thread.is_alive() is False:
                 break
         elif ms > tick_next and flag_tx:
-            tick_next = ms + 1000 
+            tick_next = ms + 1000
             flag_tx = False
 
     device.read_all()
