@@ -11,25 +11,31 @@ import serial
 
 
 class DeviceUnderTest:
-
+    """A helper class for testing the SLCAN device under test."""
     print_on: bool
     ser: serial
     slcan_ver: bytes
+    debug_build: bool
+    fd_support: bool
 
     def __init__(self):
+        """Initialize the class."""
         # initialize
         self.print_on = False
 
 
     def open(self):
+        """Open the connection to the device."""
         # connect to serial
         # device name should be changed
         #self.ser = serial.Serial('/dev/ttyACM0', timeout=1, write_timeout=1)
         self.ser = serial.Serial('COM9', timeout=1, write_timeout=1)
-        # TODO nicer warning if not connected
+        # TODO nicer to have warning if not connected
+        # TODO make COM9 a parameter
 
 
     def setup(self):
+        """Setup the device for testing."""
         # Clear false characters in the buffer. See the link for details.
         # https://github.com/Nakakiyo092/usb2canfdv1/discussions/36
         self.send(b"\a\r\r")
@@ -44,12 +50,20 @@ class DeviceUnderTest:
         slcan_ver = self.receive()
         if slcan_ver[:4] == b"VL2K":
             # CANable2.0 "Nakakiyo092/canable2-fw"
+            fd_support = True
             pass
         elif slcan_ver[:4] == b"VW1K":
             # WeAct Studio "Nakakiyo092/usb2canfdv1"
+            fd_support = True
             pass
         else:
+            fd_support = False
             print("WARNING: Unsupported SLCAN version ", slcan_ver.decode())
+
+        if b"DEBUG" in slcan_ver:
+            debug_build = True
+        else:
+            debug_build = False
 
         # Reset to default settings
         self.send(b"S4\r")
@@ -67,11 +81,15 @@ class DeviceUnderTest:
 
 
     def close(self):
+        """Close the connection to the device."""
         # close serial
         self.ser.close()
 
 
     def print_data(self, direction: chr, data: bytes):
+        """Print the data in a human-readable format.
+        param direction: 'T' for transmit, 'R' for receive
+        """
         datar = data
         datar = datar.replace(b"\r", b"[CR]")
         datar = datar.replace(b"\a", b"[BELL]")
@@ -84,6 +102,7 @@ class DeviceUnderTest:
 
 
     def send(self, tx_data: bytes):
+        """Send data to the device."""
         self.ser.write(tx_data)
 
         if self.print_on:
@@ -91,6 +110,7 @@ class DeviceUnderTest:
 
 
     def receive(self) -> bytes:
+        """Receive data from the device."""
         rx_data = b""
         cycle = 0.02    # sec
         timeout = 1     # sec
