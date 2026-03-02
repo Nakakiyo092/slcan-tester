@@ -34,7 +34,7 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=ER_ACTV, last_err_code=NONE, err_cnt_tx_rx=[0x00, 0x00], th_bus_load_percent=00\r")
         self.dut.send(b"C\r")
         self.assertEqual(self.dut.receive(), b"\r")
@@ -45,7 +45,7 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=ER_ACTV, last_err_code=NONE, err_cnt_tx_rx=[0x00, 0x00], th_bus_load_percent=00\r")
         self.dut.send(b"t0000\r")
         self.assertEqual(self.dut.receive(), b"z\r")
@@ -56,7 +56,7 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")  # check clear
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=BUS_OFF, last_err_code=BIT0, err_cnt_tx_rx=[0xF8, 0x00], th_bus_load_percent=00\r")
 
         # Check a [BELL] is retruned for a send frame command during bus off
@@ -93,7 +93,7 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=ER_ACTV, last_err_code=NONE, err_cnt_tx_rx=[0x00, 0x00], th_bus_load_percent=00\r")
 
         # One BIT0 error makes error passive event from REC = 0.
@@ -110,7 +110,7 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")  # check error clear
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=ER_PSSV, last_err_code=BIT0, err_cnt_tx_rx=[0x88, 0x00], th_bus_load_percent=00\r")
 
         # Check error warning and error passive is not reported after exceeding the thresholds
@@ -123,11 +123,11 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")  # check error clear
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=ER_PSSV, last_err_code=BIT0, err_cnt_tx_rx=[0xF8, 0x00], th_bus_load_percent=00\r")
 
         # Check error warning and error passive is not reported after exceeding the thresholds
-        for i in range(0, 1):
+        for _ in range(0, 1):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 1)
@@ -136,7 +136,7 @@ class ShortTestCase(unittest.TestCase):
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")  # check error clear
         self.dut.send(b"f\r")
-        self.assertEqual(self.dut.receive(), 
+        self.assertEqual(self.dut.receive(),
                          b"f: node_sts=BUS_OFF, last_err_code=BIT0, err_cnt_tx_rx=[0xF8, 0x00], th_bus_load_percent=00\r")
 
         self.dut.send(b"C\r")

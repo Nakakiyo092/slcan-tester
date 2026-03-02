@@ -9,7 +9,6 @@ License:
 """
 
 import time
-import threading
 
 import argparse
 import serial
@@ -221,7 +220,8 @@ def main():
 
             if loop_cnt == 1:
                 break
-            elif loop_cnt > 0:
+
+            if loop_cnt > 0:
                 loop_cnt -= 1
 
         elif ms > tick_next and flag_tx:

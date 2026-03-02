@@ -111,8 +111,10 @@ class BufferTestCase(unittest.TestCase):
         # Check rx frames are as expected (except frame loss)
         ex_msgs = rx_data_exp.split(b"\r")
         for msg in ex_msgs:
-            if rx_msgs == []: break
-            if msg == rx_msgs[0]: rx_msgs.remove(rx_msgs[0])
+            if rx_msgs == []:
+                break
+            if msg == rx_msgs[0]:
+                rx_msgs.remove(rx_msgs[0])
         self.assertEqual(rx_msgs, [])
 
         # Check message loss in the HAL buffer to confrim a frame stack
@@ -189,8 +191,10 @@ class BufferTestCase(unittest.TestCase):
         # Check rx frames are as expected (except frame loss)
         ex_msgs = rx_data_exp.split(b"\r")
         for msg in ex_msgs:
-            if rx_msgs == []: break
-            if msg == rx_msgs[0]: rx_msgs.remove(rx_msgs[0])
+            if rx_msgs == []:
+                break
+            if msg == rx_msgs[0]:
+                rx_msgs.remove(rx_msgs[0])
         self.assertEqual(rx_msgs, [])
 
         # Check message loss in the HAL buffer to confrim a frame stack

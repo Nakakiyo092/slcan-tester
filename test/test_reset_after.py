@@ -2,7 +2,6 @@
 
 import unittest
 
-import time
 from device_under_test import DeviceUnderTest
 
 
@@ -73,7 +72,7 @@ class ResetAfterTestCase(unittest.TestCase):
         for cmd in cmd_send_std:
             self.dut.send(cmd + b"03F0\r")
             rx_data = self.dut.receive()
-            if cmd == b"r" or cmd == b"t":
+            if cmd in (b"r", b"t"):
                 self.assertEqual(len(rx_data), len(b"z\r" + cmd + b"03F0TTTT\r"))
                 self.assertEqual(rx_data[0:-5], b"z\r" + cmd + b"03F0")
             else:
@@ -89,7 +88,7 @@ class ResetAfterTestCase(unittest.TestCase):
         for cmd in cmd_send_ext:
             self.dut.send(cmd + b"0000003F0\r")
             rx_data = self.dut.receive()
-            if cmd == b"R" or cmd == b"T":
+            if cmd in (b"R", b"T"):
                 self.assertEqual(len(rx_data), len(b"Z\r" + cmd + b"0000003F0TTTT\r"))
                 self.assertEqual(rx_data[0:-5], b"Z\r" + cmd + b"0000003F0")
             else:

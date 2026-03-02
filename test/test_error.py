@@ -63,7 +63,7 @@ class ErrorTestCase(unittest.TestCase):
 
         self.dut.send(b"C\r")
         self.assertEqual(self.dut.receive(), b"\r")
-        
+
 
     def test_error_warning(self):
         #self.dut.print_on = True
@@ -71,7 +71,7 @@ class ErrorTestCase(unittest.TestCase):
         # Check error warning level is reported
         self.dut.send(b"-\r")   # No retransmit mode
         self.assertEqual(self.dut.receive(), b"\r")
-        for i in range(0, 12):
+        for _ in range(0, 12):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 12)
@@ -120,7 +120,7 @@ class ErrorTestCase(unittest.TestCase):
         self.dut.send(b"-\r")   # No retransmit mode
         self.assertEqual(self.dut.receive(), b"\r")
         
-        for i in range(0, 12):
+        for _ in range(0, 12):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 12)
@@ -132,7 +132,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(),
                          b"f: node_sts=ER_ACTV, last_err_code=_ACK, err_cnt_tx_rx=[0x60, 0x00], th_bus_load_percent=00\r")
 
-        for i in range(0, 4):
+        for _ in range(0, 4):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 4)
@@ -159,7 +159,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"F00\r")
 
         #  send a lot of command without receiving data (amount depends on PC env.)
-        for i in range(0, 400):
+        for _ in range(0, 400):
             self.dut.send(b"v\r")
             time.sleep(0.001)
 
@@ -190,7 +190,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"F00\r")
 
         #  the buffer can store as least 180 messages (4096 / 24)
-        for i in range(0, 180):
+        for _ in range(0, 180):
             self.dut.send(b"t03F80011223344556677\r")
             time.sleep(0.001)
 
@@ -204,7 +204,7 @@ class ErrorTestCase(unittest.TestCase):
 
         # TODO: This process creates overflow in CDC Tx buffer not in CAN Rx buffer
         #  the buffer can not store 800 messages (amount depends on PC env.)
-        for i in range(0, 800):
+        for _ in range(0, 800):
             self.dut.send(b"t03F80011223344556677\r")
             time.sleep(0.001)
 
@@ -236,7 +236,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"F00\r")
 
         #  the buffer can store as least 64 messages
-        for i in range(0, 64):
+        for _ in range(0, 64):
             self.dut.send(b"t03F0\r")
             self.assertEqual(self.dut.receive(), b"z\r")
 
@@ -245,7 +245,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"FA4\r")  # BEI & EPI & EI
 
         #  the buffer can not store additional 64 messages
-        for i in range(0, 64):
+        for _ in range(0, 64):
             self.dut.send(b"t03F0\r")
             self.dut.receive()
 
@@ -254,7 +254,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"F02\r")
 
         # Check a [BELL] is sent for each transmitted frame when CAN Tx overflow occurs
-        for i in range(0, 64):
+        for _ in range(0, 64):
             self.dut.send(b"t03F0\r")
             self.assertEqual(self.dut.receive(), b"\a")
 
@@ -285,7 +285,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"F00\r")
 
         #  will be discarded by no ack
-        for i in range(0, 64):
+        for _ in range(0, 64):
             self.dut.send(b"t03F0\r")
             self.assertEqual(self.dut.receive(), b"z\r")
 
@@ -296,7 +296,7 @@ class ErrorTestCase(unittest.TestCase):
         self.dut.receive()
 
         #  will be discarded by no ack
-        for i in range(0, 64):
+        for _ in range(0, 64):
             self.dut.send(b"t03F0\r")
             self.dut.receive()
 
@@ -305,7 +305,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"F00\r")  # TEC saturates by 16 frames
 
         #  will be discarded by no ack
-        for i in range(0, 64):
+        for _ in range(0, 64):
             self.dut.send(b"t03F0\r")
             self.assertEqual(self.dut.receive(), b"z\r")
 

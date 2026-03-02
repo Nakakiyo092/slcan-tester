@@ -2,7 +2,6 @@
 
 import unittest
 
-import time
 from device_under_test import DeviceUnderTest
 
 
@@ -39,17 +38,17 @@ class SlcanTestCase(unittest.TestCase):
     def test_too_long_command(self):
         """Check response to a command longer than MTU"""
         # 1 + 138 + 8 + 1 + 1 + 16 = 165 is the MTU (including a [CR] and 16 bytes margin)
-        for i in range(163):
+        for _ in range(163):
             self.dut.send(b"F")
         self.assertEqual(self.dut.receive(), b"")
         self.dut.send(b"\r")
         self.assertEqual(self.dut.receive(), b"\a")
-        for i in range(164):
+        for _ in range(164):
             self.dut.send(b"F")
         self.assertEqual(self.dut.receive(), b"")
         self.dut.send(b"\r")
         self.assertEqual(self.dut.receive(), b"\a")
-        for i in range(165):
+        for _ in range(165):
             self.dut.send(b"F")
         self.assertEqual(self.dut.receive(), b"")
         self.dut.send(b"\r")
@@ -219,7 +218,7 @@ class SlcanTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
         self.dut.send(b"sFFFF8080\r")
         self.assertEqual(self.dut.receive(), b"\r")
-        
+
         # Check our of range
         self.dut.send(b"s00460908\r")
         self.assertEqual(self.dut.receive(), b"\a")
@@ -312,7 +311,7 @@ class SlcanTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
         self.dut.send(b"y20201010\r")
         self.assertEqual(self.dut.receive(), b"\r")
-        
+
         # Check our of range
         self.dut.send(b"y001E0908\r")
         self.assertEqual(self.dut.receive(), b"\a")

@@ -24,8 +24,6 @@ class DominantTestCase(unittest.TestCase):
 
     def test_dominant(self):
         #self.dut.print_on = True
-        cmd_send_std = (b"r", b"t", b"d", b"b")
-        cmd_send_ext = (b"R", b"T", b"D", b"B")
 
         self.dut.send(b"=\r")
         self.assertEqual(self.dut.receive(), b"\r")
