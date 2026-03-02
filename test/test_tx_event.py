@@ -7,8 +7,8 @@ import random
 from device_under_test import DeviceUnderTest
 
 
-# NOTE: This test requires another device with the default setup on CAN bus.
-#       The test_nack requires the channel of the device (not dut) becoming open and closed repeatedly.
+# NOTE: This test requires another device (aux) with the default setup on CAN bus.
+#       The test_nack requires the channel of the aux device becoming open and closed repeatedly.
 class TxEventTestCase(unittest.TestCase):
 
     print_on: bool
@@ -112,13 +112,10 @@ class TxEventTestCase(unittest.TestCase):
         random.seed(92)
         rx_data = b""
         rx_data_exp = b""
-        # Setup bit rate so that CBFF is OK but FBFF with BRS is not. See the link for details.
-        # TODO Just a unmatched data bit rate is not enough?
-        # https://github.com/Nakakiyo092/canable2-fw/discussions/72#discussioncomment-14331610
-        #self.dut.send(b"s10420D0C\r")   # For CANable2
-        self.dut.send(b"s08420D0C\r")   # For WeActStudio   TODO use VXXXX
+        # Setup bit rate so that CBFF is OK but FBFF with BRS is not.
+        self.dut.send(b"Y5\r")      # Rx side is default (125kbps / 2Mbps)
         self.assertEqual(self.dut.receive(), b"\r")
-        self.dut.send(b"z0002\r")  # no rx, tx event only
+        self.dut.send(b"z0002\r")   # no rx, tx event only
         self.assertEqual(self.dut.receive(), b"\r")
         self.dut.send(b"-\r")
         self.assertEqual(self.dut.receive(), b"\r")
@@ -153,7 +150,7 @@ class TxEventTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
 
 
-    @unittest.skip("skip this test temporarily")
+    @unittest.skip("Skip this test due to a special setup requirement")
     def test_nack(self):
         self.dut.print_on = True
         rx_data = b""

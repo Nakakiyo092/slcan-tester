@@ -17,7 +17,7 @@ import serial
 def get_argparser():
     """Get argument parser for this script."""
     parser = argparse.ArgumentParser(
-        description="Test USB CDC throughput. Press 'q' + [ENTER] to quit."
+        description="Test USB CDC throughput. Press [CTRL] + 'c' to quit."
     )
     parser.add_argument(
         "devicename",
@@ -35,6 +35,17 @@ def get_argparser():
         action="store_true",
         help="test transmitting speed (host -> device)"
     )
+    group.add_argument(
+        "-b", "--bi", 
+        action="store_true",
+        help="test bidirectional speed (host <-> device)"
+    )
+    parser.add_argument(
+        "-i", "--iteration",
+        type=int,
+        default=0,
+        help="number of iterations to test (0 for infinite)"
+    )
     parser.add_argument(
         "-d", "--duration",
         type=int,
@@ -50,15 +61,7 @@ def get_argparser():
     return parser
 
 
-def check_key():
-    """Check if user input 'q' to quit the test."""
-    while True:
-        if input() == 'q':
-            print("quit now")
-            break
-
-
-def print_test_environment(dev: serial):
+def print_test_environment(dev: serial, mode: str):
     """Print test environment information."""
     print("usb port name:", dev.port)
     print("")
@@ -75,16 +78,37 @@ def print_test_environment(dev: serial):
     print("   ", dev.read_all().decode())
     print("")
 
-    print("can port status: closed")
+    if mode == "bi":
+        dev.write(b"S8\r")
+        dev.write(b"Y5\r")
+        dev.write(b"+\r")
+        time.sleep(0.1)
+        dev.read_all().decode()
+        print("can port status: open (1M/5Mbps)")
+    else:
+        print("can port status: closed")
+
+
+def print_round_trip_time(dev: serial):
+    """Print test environment information."""
+    rtt = []
+    for _ in range(0, 5):
+        time_start = time.perf_counter()
+        dev.write(b"\r")
+        dev.read_until(b"\r")
+        time_end = time.perf_counter()
+        rtt.append(int((time_end - time_start) * 1000 * 1000))
+
+    print("ping:", rtt, "us")
 
 
 def make_data_to_write(mode: str, chunk_size: int) -> bytes:
     """Make data to write to device."""
-    if mode == "tx":
+    if mode == "rx":
+        single_msg = b"v\r"
+    else:
         single_msg = b"00112233445566778899AABBCCDDEEFF"
         single_msg = b"B00000000F" + single_msg + single_msg + single_msg + single_msg + b"\r"
-    else:
-        single_msg = b"v\r"
 
     data_write = b""
     for _ in range(0, chunk_size):
@@ -138,6 +162,8 @@ def main():
     argparser = get_argparser()
     args = argparser.parse_args()
 
+    mode = "bi" if args.bi else "tx" if args.tx else "rx"
+
     try:
         device = serial.Serial(args.devicename, timeout=1, write_timeout=1)
     except Exception as err:
@@ -145,18 +171,17 @@ def main():
         print(err)
         return
 
-    check_key_thread = threading.Thread(target=check_key)
-    check_key_thread.start()
-
     device.write(b"\a\r\r")
     device.write(b"C\r")
     time.sleep(0.1)
     device.read_all()
 
-    print_test_environment(device)
+    print_test_environment(device, mode)
+    print("")
+    print_round_trip_time(device)
     print("")
 
-    data_write = make_data_to_write("tx" if args.tx else "rx", args.chunk_size)
+    data_write = make_data_to_write(mode, args.chunk_size)
 
     stats = {
         "tx_len": 0,
@@ -165,15 +190,16 @@ def main():
         "rx_msg": 0,
     }
 
+    loop_cnt = args.iteration
     flag_tx = True
-
     tick_next = int(round(time.time() * 1000)) + 1000 * args.duration
 
     while True:
         if flag_tx:
             device.write(data_write)
             stats["tx_len"] += len(data_write)
-            stats["tx_msg"] += args.chunk_size
+            # For bi-directional test, tx message is counted twice to match rx count.
+            stats["tx_msg"] += args.chunk_size if mode != "bi" else args.chunk_size * 2
 
         data_read = device.read_all()
         stats["rx_len"] += len(data_read)
@@ -193,11 +219,13 @@ def main():
             tick_next = ms + 1000 * args.duration
             flag_tx = True
 
-            if check_key_thread.is_alive() is False:
+            if loop_cnt == 1:
                 break
+            elif loop_cnt > 0:
+                loop_cnt -= 1
 
         elif ms > tick_next and flag_tx:
-            tick_next = ms + 1000
+            tick_next = ms + 100    # Off time to reteive remaining data in buffer.
             flag_tx = False
 
     device.write(b"C\r")
@@ -207,4 +235,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
