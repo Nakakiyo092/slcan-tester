@@ -29,7 +29,7 @@ class ResetAfterTestCase(unittest.TestCase):
     def test_timestamp(self):
         #self.dut.print_on = True
         cmd_send_std = (b"r", b"t", b"d", b"b")
-        cmd_send_ext = (b"R", b"T", b"D", b"B")
+        #cmd_send_ext = (b"R", b"T", b"D", b"B")
 
         # Check timestamp is still on after reset
         self.dut.send(b"C\r")
@@ -40,7 +40,7 @@ class ResetAfterTestCase(unittest.TestCase):
         for cmd in cmd_send_std:
             self.dut.send(cmd + b"03F0\r")
             rx_data = self.dut.receive()
-            if cmd == b"r" or cmd == b"t":
+            if cmd in (b"r", b"t"):
                 self.assertEqual(len(rx_data), len(b"z\r" + cmd + b"03F0TTTT\r"))
                 self.assertEqual(rx_data[:len(b"z\r" + cmd + b"03F0")], b"z\r" + cmd + b"03F0")
             else:

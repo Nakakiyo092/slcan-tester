@@ -405,7 +405,7 @@ class InLoopbackTestCase(unittest.TestCase):
 
         # Check timestamp difference for 20 frames with BRS sent consecutively
         tx_frame = b"B1555555585555555555555555"
-        for i in range(0, 20):
+        for _ in range(0, 20):
             self.dut.send(tx_frame + b"\r")
         time.sleep(0.5)
         rx_data = self.dut.receive()

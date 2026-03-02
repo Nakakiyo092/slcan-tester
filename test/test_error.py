@@ -119,7 +119,7 @@ class ErrorTestCase(unittest.TestCase):
         # Check error warning level is not reported after exceeding error warning level
         self.dut.send(b"-\r")   # No retransmit mode
         self.assertEqual(self.dut.receive(), b"\r")
-        
+
         for _ in range(0, 12):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
@@ -164,7 +164,7 @@ class ErrorTestCase(unittest.TestCase):
             time.sleep(0.001)
 
         #  recieve all reply
-        rx_data = self.dut.receive()
+        self.dut.receive()
 
         # Check CAN Rx Full error is reported for CDC Tx overflow
         self.dut.send(b"F\r")
@@ -195,8 +195,8 @@ class ErrorTestCase(unittest.TestCase):
             time.sleep(0.001)
 
         #  recieve all reply
-        rx_data = self.dut.receive()
-        rx_data = self.dut.receive()    # just to make sure
+        self.dut.receive()
+        self.dut.receive()    # just to make sure
 
         # Confirm no error
         self.dut.send(b"F\r")
@@ -209,8 +209,8 @@ class ErrorTestCase(unittest.TestCase):
             time.sleep(0.001)
 
         #  recieve all reply
-        rx_data = self.dut.receive()
-        rx_data = self.dut.receive()    # just to make sure
+        self.dut.receive()
+        self.dut.receive()    # just to make sure
 
         # Check CAN Rx Full error is reported for CDC Tx overflow
         self.dut.send(b"F\r")

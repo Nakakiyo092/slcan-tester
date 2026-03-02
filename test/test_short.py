@@ -73,7 +73,7 @@ class ShortTestCase(unittest.TestCase):
 
         self.dut.send(b"=\r")
         self.assertEqual(self.dut.receive(), b"\r")
-        
+
         for cmd in cmd_send_std:
             self.dut.send(cmd + b"03F0\r")
             self.assertEqual(self.dut.receive(), b"z\r" + cmd + b"03F0\r")
@@ -101,7 +101,7 @@ class ShortTestCase(unittest.TestCase):
         # TODO: Need to check data sheet
 
         # Check error warning and error passive is reported
-        for i in range(0, 1):
+        for _ in range(0, 1):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 1)
@@ -114,7 +114,7 @@ class ShortTestCase(unittest.TestCase):
                          b"f: node_sts=ER_PSSV, last_err_code=BIT0, err_cnt_tx_rx=[0x88, 0x00], th_bus_load_percent=00\r")
 
         # Check error warning and error passive is not reported after exceeding the thresholds
-        for i in range(0, 14):
+        for _ in range(0, 14):
             self.dut.send(b"t0000\r")
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 14)
@@ -141,7 +141,7 @@ class ShortTestCase(unittest.TestCase):
 
         self.dut.send(b"C\r")
         self.assertEqual(self.dut.receive(), b"\r")
-        
+
 
 if __name__ == "__main__":
     unittest.main()
