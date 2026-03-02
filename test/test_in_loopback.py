@@ -46,10 +46,10 @@ class InLoopbackTestCase(unittest.TestCase):
         tx_data = b"t03F80011223344556677\r"
         self.dut.send(tx_data)
         self.assertEqual(self.dut.receive(), b"z\r" + tx_data)
-        tx_data = b"d03FF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r"
+        tx_data = b"d03FF" + b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r"
         self.dut.send(tx_data)
         self.assertEqual(self.dut.receive(), b"z\r" + tx_data)
-        tx_data = b"b03FF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r"
+        tx_data = b"b03FF" + b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r"
         self.dut.send(tx_data)
         self.assertEqual(self.dut.receive(), b"z\r" + tx_data)
         tx_data = b"R0137FEC8F\r"
@@ -58,10 +58,10 @@ class InLoopbackTestCase(unittest.TestCase):
         tx_data = b"T0137FEC880011223344556677\r"
         self.dut.send(tx_data)
         self.assertEqual(self.dut.receive(), b"Z\r" + tx_data)
-        tx_data = b"D0137FEC8F00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r"
+        tx_data = b"D0137FEC8F" + b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r"
         self.dut.send(tx_data)
         self.assertEqual(self.dut.receive(), b"Z\r" + tx_data)
-        tx_data = b"B0137FEC8F00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r"
+        tx_data = b"B0137FEC8F" + b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r"
         self.dut.send(tx_data)
         self.assertEqual(self.dut.receive(), b"Z\r" + tx_data)
         self.dut.send(b"C\r")

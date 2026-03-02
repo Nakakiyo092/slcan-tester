@@ -22,21 +22,22 @@ class SlcanTestCase(unittest.TestCase):
 
 
     def test_blank_command(self):
-        # Check response to a [CR]
+        """Check response to a [CR]"""
         self.dut.send(b"\r")
         self.assertEqual(self.dut.receive(), b"\r")
 
 
     def test_error_command(self):
-        # Check response to a [BELL]
+        """Check response to a [BELL]"""
         self.dut.send(b"\a")
-        self.assertEqual(self.dut.receive(), b"")      # no reply since message is incomplete without [CR]
+        # no reply since message is incomplete without [CR]
+        self.assertEqual(self.dut.receive(), b"")
         self.dut.send(b"\r")
         self.assertEqual(self.dut.receive(), b"\a")
 
 
     def test_too_long_command(self):
-        # Check response to a command longer than MTU
+        """Check response to a command longer than MTU"""
         # 1 + 138 + 8 + 1 + 1 + 16 = 165 is the MTU (including a [CR] and 16 bytes margin)
         for i in range(163):
             self.dut.send(b"F")
@@ -725,17 +726,17 @@ class SlcanTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"z\r")
         self.dut.send(b"t7FFF0011223344556677\r")   # DLC 0xF - 8 byte data is a valid combination
         self.assertEqual(self.dut.receive(), b"z\r")
-        self.dut.send(b"d7FFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r")
+        self.dut.send(b"d7FFF" b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r")
         self.assertEqual(self.dut.receive(), b"z\r")
-        self.dut.send(b"b7FFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r")
+        self.dut.send(b"b7FFF" b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r")
         self.assertEqual(self.dut.receive(), b"z\r")
         self.dut.send(b"R1FFFFFFFF\r")
         self.assertEqual(self.dut.receive(), b"Z\r")
         self.dut.send(b"T1FFFFFFFF0011223344556677\r")  # DLC 0xF - 8 byte data is a valid combination
         self.assertEqual(self.dut.receive(), b"Z\r")
-        self.dut.send(b"D1FFFFFFFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r")
+        self.dut.send(b"D1FFFFFFFF" b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r")
         self.assertEqual(self.dut.receive(), b"Z\r")
-        self.dut.send(b"B1FFFFFFFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF\r")
+        self.dut.send(b"B1FFFFFFFF" b"00112233445566778899AABBCCDDEEFF" * 4 + b"\r")
         self.assertEqual(self.dut.receive(), b"Z\r")
         self.dut.send(b"C\r")
         self.assertEqual(self.dut.receive(), b"\r")

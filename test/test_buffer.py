@@ -21,8 +21,8 @@ class BufferTestCase(unittest.TestCase):
         self.dut.close()
 
 
-    # Check stored frames in CDC Tx buffer are not altered in order or content
     def test_rx_frame_in_cdc_tx_buffer(self):
+        """Check stored frames in CDC Tx buffer are not altered in order or content"""
         #self.dut.print_on = True
         rx_data_exp = b""
 
@@ -47,9 +47,8 @@ class BufferTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
 
 
-    # TODO need both rx and tx frames?
-    # Check stored frames in CDC Tx buffer are not altered in order or content
     def test_tx_frame_in_cdc_tx_buffer(self):
+        """Check stored frames in CDC Tx buffer are not altered in order or content"""
         #self.dut.print_on = True
         rx_data_exp = b""
 
@@ -76,8 +75,8 @@ class BufferTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
 
 
-    # Check stored frames in CAN Rx buffer are not alterd in order or content
     def test_can_rx_buffer(self):
+        """Check stored frames in CAN Rx buffer are not altered in order or content"""
         #self.dut.print_on = True
 
         chunk = 30  # "stun" the device by sending too many frames at once
@@ -89,7 +88,8 @@ class BufferTestCase(unittest.TestCase):
         self.dut.send(b"=\r")
         self.assertEqual(self.dut.receive(), b"\r")
 
-        # The cdc buffer can store as least 180 messages (4096 / 22) (Do not cause irrelevant buffer overflow)
+        # The cdc buffer can store as least 180 messages (4096 / 22)
+        # Do not cause irrelevant buffer overflow
         rx_data_exp = b""
         for i in range(0, int(180 / chunk)):
             tx_data = b""
@@ -122,8 +122,8 @@ class BufferTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
 
 
-    # Check stored frames in CAN Tx buffer are not alterd in order or content
     def test_can_tx_buffer(self):
+        """Check stored frames in CAN Tx buffer are not altered in order or content"""
         #self.dut.print_on = True
         rx_data_exp = b""
 
@@ -152,8 +152,8 @@ class BufferTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"\r")
 
 
-    # Check stored frames in Tx event buffer are not altered in order or content
     def test_can_tx_event_buffer(self):
+        """Check stored frames in Tx event buffer are not altered in order or content"""
         #self.dut.print_on = True
 
         chunk = 30  # "stun" the device by sending too many frames at once
