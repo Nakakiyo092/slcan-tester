@@ -80,7 +80,7 @@ def print_test_environment(dev: serial, mode: str):
     if mode == "bi":
         dev.write(b"S8\r")
         dev.write(b"Y5\r")
-        dev.write(b"+\r")
+        dev.write(b"+\r")    # TODO: warning if loopback is not supported
         time.sleep(0.1)
         dev.read_all().decode()
         print("can port status: open (1M/5Mbps)")
@@ -104,7 +104,7 @@ def print_round_trip_time(dev: serial):
 def make_data_to_write(mode: str, chunk_size: int) -> bytes:
     """Make data to write to device."""
     if mode == "rx":
-        single_msg = b"v\r"
+        single_msg = b"v\r"    # TODO: V[CR] option for wider support
     else:
         single_msg = b"00112233445566778899AABBCCDDEEFF"
         single_msg = b"B00000000F" + single_msg + single_msg + single_msg + single_msg + b"\r"
