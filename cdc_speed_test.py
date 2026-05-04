@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Test USB CDC throughput.
+Test USB CDC throughput for a SLCAN device.
 
 License:
     MIT License.
@@ -55,12 +55,12 @@ def get_argparser():
         "-c", "--chunk-size",
         type=int,
         default=1,
-        help="chunk size for each transmission"
+        help="number of times the base message is repeated to form one tx chunk"
     )
     return parser
 
 
-def print_test_environment(dev: serial, mode: str):
+def print_test_environment(dev: serial.Serial, mode: str):
     """Print test environment information."""
     print("usb port name:", dev.port)
     print("")
@@ -88,10 +88,11 @@ def print_test_environment(dev: serial, mode: str):
         print("can port status: closed")
 
 
-def print_round_trip_time(dev: serial):
-    """Print test environment information."""
+def print_round_trip_time(dev: serial.Serial):
+    """Measure and print round-trip time."""
     rtt = []
     for _ in range(0, 5):
+        # Use perf_counter for better resolution (RTT is expected to be less than ms)
         time_start = time.perf_counter()
         dev.write(b"\r")
         dev.read_until(b"\r")
@@ -107,7 +108,7 @@ def make_data_to_write(mode: str, chunk_size: int) -> bytes:
         single_msg = b"v\r"    # TODO: V[CR] option for wider support
     else:
         single_msg = b"00112233445566778899AABBCCDDEEFF"
-        single_msg = b"B00000000F" + single_msg + single_msg + single_msg + single_msg + b"\r"
+        single_msg = b"B00000000F" + single_msg * 4 + b"\r"
 
     data_write = b""
     for _ in range(0, chunk_size):
@@ -118,8 +119,8 @@ def make_data_to_write(mode: str, chunk_size: int) -> bytes:
 
 def count_message(data: bytes) -> int:
     """Count the number of messages in the data."""
-    targets = {ord("\r"), ord("\a")}
-    return sum(byte in targets for byte in data)
+    terminators = {ord("\r"), ord("\a")}
+    return sum(byte in terminators for byte in data)
 
 
 def print_speed_and_loss(stats: dict, duration: int):
@@ -136,7 +137,7 @@ def print_speed_and_loss(stats: dict, duration: int):
     print("message loss: ", stats["tx_msg"] - stats["rx_msg"], " / ", stats["tx_msg"])
 
 
-def print_device_status(dev: serial):
+def print_device_status(dev: serial.Serial):
     """Print device status information."""
     dev.write(b"F\r")
     time.sleep(0.1)
@@ -190,11 +191,11 @@ def main():
     }
 
     loop_cnt = args.iteration
-    flag_tx = True
+    phase_tx = True
     tick_next = int(round(time.time() * 1000)) + 1000 * args.duration
 
     while True:
-        if flag_tx:
+        if phase_tx:
             device.write(data_write)
             stats["tx_len"] += len(data_write)
             # For bi-directional test, tx message is counted twice to match rx count.
@@ -205,7 +206,7 @@ def main():
         stats["rx_msg"] += count_message(data_read)
 
         ms = int(round(time.time() * 1000))
-        if ms > tick_next and not flag_tx:
+        if ms > tick_next and not phase_tx:
             print_speed_and_loss(stats, args.duration)
             print("")
             print_device_status(device)
@@ -216,7 +217,7 @@ def main():
 
             ms = int(round(time.time() * 1000))
             tick_next = ms + 1000 * args.duration
-            flag_tx = True
+            phase_tx = True
 
             if loop_cnt == 1:
                 break
@@ -224,9 +225,9 @@ def main():
             if loop_cnt > 0:
                 loop_cnt -= 1
 
-        elif ms > tick_next and flag_tx:
-            tick_next = ms + 100    # Off time to reteive remaining data in buffer.
-            flag_tx = False
+        elif ms > tick_next and phase_tx:
+            tick_next = ms + 100    # Off time to retrieve remaining data in buffer.
+            phase_tx = False
 
     device.write(b"C\r")
     time.sleep(0.1)
