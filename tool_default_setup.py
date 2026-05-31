@@ -8,7 +8,6 @@ from device_under_test import DeviceUnderTest
 
 class ToolDefaultTestCase(unittest.TestCase):
 
-    print_on: bool
     dut: DeviceUnderTest
 
     def setUp(self):
@@ -23,6 +22,12 @@ class ToolDefaultTestCase(unittest.TestCase):
 
     def test_default(self):
         #self.dut.print_on = True
+
+        # Serial number: write NA123 if not already stored
+        self.dut.send(b"N\r")
+        if self.dut.receive() == b"\a":
+            self.dut.send(b"NA123\r")
+            self.assertEqual(self.dut.receive(), b"\r")
 
         # Bit rate
         self.dut.send(b"S4\r")

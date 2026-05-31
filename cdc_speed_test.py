@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Test USB CDC throughput.
+Test USB CDC throughput for a SLCAN device.
 
 License:
     MIT License.
@@ -12,6 +12,11 @@ import time
 
 import argparse
 import serial
+
+
+ROUND_TRIP_TIME_SAMPLES = 5
+STATS_INTERVAL_MS = 60_000
+
 
 def get_argparser():
     """Get argument parser for this script."""
@@ -55,15 +60,20 @@ def get_argparser():
         "-c", "--chunk-size",
         type=int,
         default=1,
-        help="chunk size for each transmission"
+        help="number of times the base message is repeated to form one tx chunk"
     )
     return parser
 
 
-def print_test_environment(dev: serial, mode: str):
-    """Print test environment information."""
+def setup_device_under_test(dev: serial.Serial, mode: str):
+    """Setup device and print test information."""
     print("usb port name:", dev.port)
     print("")
+
+    dev.write(b"\a\r\r")    # Flush the buffer
+    dev.write(b"C\r")
+    time.sleep(0.1)
+    dev.read_all()
 
     dev.write(b"N\r")
     time.sleep(0.1)
@@ -78,20 +88,36 @@ def print_test_environment(dev: serial, mode: str):
     print("")
 
     if mode == "bi":
+        # Setup maximum CAN speed to stress the device
         dev.write(b"S8\r")
         dev.write(b"Y5\r")
         dev.write(b"+\r")    # TODO: warning if loopback is not supported
         time.sleep(0.1)
-        dev.read_all().decode()
-        print("can port status: open (1M/5Mbps)")
+        dev.read_all()
+        print("can port status: open/loopback (1M/5Mbps)")
     else:
         print("can port status: closed")
 
+    print("")
 
-def print_round_trip_time(dev: serial):
-    """Print test environment information."""
+
+def cleanup_device_under_test(dev: serial.Serial):
+    """Close the device cleanly at the end of the test."""
+    dev.write(b"C\r")
+    time.sleep(0.1)
+    dev.read_all()
+    dev.close()
+
+
+def print_round_trip_time(dev: serial.Serial) -> int:
+    """Print round-trip time.
+    
+    Returns average RTT in us.
+    Returns -1 on error.
+    """
     rtt = []
-    for _ in range(0, 5):
+    for _ in range(0, ROUND_TRIP_TIME_SAMPLES):
+        # Use perf_counter for better resolution (RTT is expected to be less than ms)
         time_start = time.perf_counter()
         dev.write(b"\r")
         dev.read_until(b"\r")
@@ -99,15 +125,22 @@ def print_round_trip_time(dev: serial):
         rtt.append(int((time_end - time_start) * 1000 * 1000))
 
     print("ping:", rtt, "us")
+    print("")
+
+    if len(rtt) == 0:
+        return -1
+
+    return sum(rtt) // len(rtt)
 
 
 def make_data_to_write(mode: str, chunk_size: int) -> bytes:
     """Make data to write to device."""
     if mode == "rx":
-        single_msg = b"v\r"    # TODO: V[CR] option for wider support
+        #single_msg = b"v\r"    # Higher TX-to-RX gain (if supported by device)
+        single_msg = b"V\r"    # Lower gain but widely supported
     else:
         single_msg = b"00112233445566778899AABBCCDDEEFF"
-        single_msg = b"B00000000F" + single_msg + single_msg + single_msg + single_msg + b"\r"
+        single_msg = b"B00000000F" + single_msg * 4 + b"\r" # a frame with 64 bytes data
 
     data_write = b""
     for _ in range(0, chunk_size):
@@ -118,12 +151,12 @@ def make_data_to_write(mode: str, chunk_size: int) -> bytes:
 
 def count_message(data: bytes) -> int:
     """Count the number of messages in the data."""
-    targets = {ord("\r"), ord("\a")}
-    return sum(byte in targets for byte in data)
+    terminators = {ord("\r"), ord("\a")}
+    return sum(byte in terminators for byte in data)
 
 
 def print_speed_and_loss(stats: dict, duration: int):
-    """Print the speed and message loss."""
+    """Print the speed and message loss. The argument duration is in seconds."""
     if duration == 0:
         print("tx speed: ", "N/A")
         print("rx speed: ", "N/A")
@@ -134,9 +167,10 @@ def print_speed_and_loss(stats: dict, duration: int):
         print("rx speed: ", f"{rx_speed:8.2f}", "kB/s\t", f"{rx_speed * 8:8.2f}", "kbits/s")
 
     print("message loss: ", stats["tx_msg"] - stats["rx_msg"], " / ", stats["tx_msg"])
+    print("")
 
 
-def print_device_status(dev: serial):
+def print_device_status(dev: serial.Serial):
     """Print device status information."""
     dev.write(b"F\r")
     time.sleep(0.1)
@@ -155,6 +189,8 @@ def print_device_status(dev: serial):
     if resp != "\a":
         print("   ", resp)
 
+    print("")
+
 
 def main():
     """Main function."""
@@ -165,20 +201,13 @@ def main():
 
     try:
         device = serial.Serial(args.devicename, timeout=1, write_timeout=1)
-    except Exception as err:
+    except serial.SerialException as err:
         print("ERROR: Could not open device ", args.devicename)
         print(err)
         return
 
-    device.write(b"\a\r\r")
-    device.write(b"C\r")
-    time.sleep(0.1)
-    device.read_all()
-
-    print_test_environment(device, mode)
-    print("")
+    setup_device_under_test(device, mode)
     print_round_trip_time(device)
-    print("")
 
     data_write = make_data_to_write(mode, args.chunk_size)
 
@@ -190,14 +219,14 @@ def main():
     }
 
     loop_cnt = args.iteration
-    flag_tx = True
+    phase_tx = True
     tick_next = int(round(time.time() * 1000)) + 1000 * args.duration
 
     while True:
-        if flag_tx:
+        if phase_tx:
             device.write(data_write)
             stats["tx_len"] += len(data_write)
-            # For bi-directional test, tx message is counted twice to match rx count.
+            # For bi-directional test, tx message is counted twice to match rx count. TODO move this logic to printer
             stats["tx_msg"] += args.chunk_size if mode != "bi" else args.chunk_size * 2
 
         data_read = device.read_all()
@@ -205,18 +234,16 @@ def main():
         stats["rx_msg"] += count_message(data_read)
 
         ms = int(round(time.time() * 1000))
-        if ms > tick_next and not flag_tx:
+        if ms > tick_next and not phase_tx:
             print_speed_and_loss(stats, args.duration)
-            print("")
             print_device_status(device)
-            print("")
 
             for key in stats:
                 stats[key] = 0
 
             ms = int(round(time.time() * 1000))
             tick_next = ms + 1000 * args.duration
-            flag_tx = True
+            phase_tx = True
 
             if loop_cnt == 1:
                 break
@@ -224,18 +251,16 @@ def main():
             if loop_cnt > 0:
                 loop_cnt -= 1
 
-        elif ms > tick_next and flag_tx:
-            tick_next = ms + 100    # Off time to reteive remaining data in buffer.
-            flag_tx = False
+        elif ms > tick_next and phase_tx:
+            tick_next = ms + 100    # Off time to retrieve remaining data in buffer.
+            phase_tx = False
 
-    device.write(b"C\r")
-    time.sleep(0.1)
-    device.read_all()
-    device.close()
+    cleanup_device_under_test(device)
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        # TODO close USB port cleanly
         pass

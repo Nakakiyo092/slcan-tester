@@ -9,7 +9,6 @@ from device_under_test import DeviceUnderTest
 # NOTE: This test needs to be done with CAN high and low shorted.
 class ShortTestCase(unittest.TestCase):
 
-    print_on: bool
     dut: DeviceUnderTest
 
     def setUp(self):
@@ -51,7 +50,7 @@ class ShortTestCase(unittest.TestCase):
         self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.1)     # wait for bus off ( > 1ms * 255 / 8)
         self.dut.send(b"F\r")
-        self.assertEqual(self.dut.receive(), b"FA4\r")  # BEI + EPI + EI
+        self.assertEqual(self.dut.receive(), b"FB4\r")  # Bus error and Bus off (incl. passive and warning)
         time.sleep(0.1)
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")  # check clear
@@ -132,7 +131,7 @@ class ShortTestCase(unittest.TestCase):
             self.assertEqual(self.dut.receive(), b"z\r")
         time.sleep(0.2)     # wait for a while ( > 1ms * 1)
         self.dut.send(b"F\r")
-        self.assertEqual(self.dut.receive(), b"F80\r")  # BEI
+        self.assertEqual(self.dut.receive(), b"F90\r")  # Bus error and Bus off
         self.dut.send(b"F\r")
         self.assertEqual(self.dut.receive(), b"F00\r")  # check error clear
         self.dut.send(b"f\r")
