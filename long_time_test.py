@@ -78,7 +78,7 @@ def setup_device_under_test(dev: serial.Serial, with_receiver: bool):
     dev.write(b"z2002\r")
     time.sleep(0.1)
     dev.read_all()
-    
+
     if with_receiver:
         dev.write(b"O\r")    # TODO: warning if loopback is not supported
         time.sleep(0.1)
@@ -148,7 +148,7 @@ def extract_timestamp_from_tx_event(msg: bytes) -> int:
     """
     if len(msg) < len(b"ZTTTTTTTT\r") or msg[0:1] != b"Z":
         return -1
-    
+
     try:
         timestamp_hex = msg[-9:-1].decode()     # Last 8 chars before '\r'
         return int(timestamp_hex, 16)
@@ -165,9 +165,9 @@ def calc_timestamp_diff(ts_new: int, ts_old: int) -> int:
     """
     if ts_new >= ts_old:
         return ts_new - ts_old
-    else:
-        # Overflow occurred
-        return (TIMESTAMP_PERIOD_US - ts_old) + ts_new
+
+    # Overflow occurred
+    return (TIMESTAMP_PERIOD_US - ts_old) + ts_new
 
 
 def print_status_check(stats: dict):
@@ -187,11 +187,11 @@ def print_timestamp_verification(stats: dict):
         print("timestamp verification: 0 samples (need at least 1)")
         print("")
         return
-    
+
     avg_error = stats["ts_error_sum"] / stats["ts_verified"]
     max_error = stats["ts_error_max"]
     failure_count = stats["ts_failure_count"]
-    
+
     print(f"timestamp verification: {stats['ts_verified']} samples")
     print(f"  average error: {avg_error:.1f} us")
     print(f"  max error: {max_error} us")
@@ -212,8 +212,8 @@ def print_clock_accuracy(stats: dict):
         print(f"  drift upper bound: {stats['clock_offset_upper_bound'] / stats['clock_duration'] * 1000_000:.3f} ppm")
         print(f"  drift lower bound: {stats['clock_offset_lower_bound'] / stats['clock_duration'] * 1000_000:.3f} ppm")
     else:
-        print(f"  drift upper bound: N/A ppm")
-        print(f"  drift lower bound: N/A ppm")
+        print("  drift upper bound: N/A ppm")
+        print("  drift lower bound: N/A ppm")
     print("")
 
 
@@ -317,11 +317,11 @@ def main():
                         host_diff_us = host_tx_time_us_list[0] - host_tx_time_us_prev
                         device_diff_us = calc_timestamp_diff(device_ts, device_ts_prev)
                         error_us = abs(host_diff_us - device_diff_us)
-                        
+
                         stats["ts_verified"] += 1
                         stats["ts_error_sum"] += error_us
                         stats["ts_error_max"] = max(stats["ts_error_max"], error_us)
-                        
+
                         if error_us > TIMESTAMP_DIFF_THRESHOLD_US:
                             print(f"WARNING: Timestamp verification failed for message {msg.strip()}: device_ts={device_ts}, device_ts_prev={device_ts_prev}")
                             stats["ts_failure_count"] += 1
@@ -336,8 +336,7 @@ def main():
                         # Then include safety margin as the RTT can sometimes be much higher than the average (like x10).
                         drift_upper_bound_us = abs(drift_us) + RTT_SAFETY_MARGIN * 2 * rtt
                         drift_lower_bound_us = abs(drift_us) - RTT_SAFETY_MARGIN * 2 * rtt
-                        if drift_lower_bound_us < 0:
-                            drift_lower_bound_us = 0
+                        drift_lower_bound_us = max(drift_lower_bound_us, 0)
 
                         stats["clock_samples"] += 1
                         stats["clock_offset"] = drift_us
